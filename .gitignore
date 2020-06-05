@@ -1,0 +1,12 @@
+*.bak
+*~
+~*
+.*.bak
+.*~
+*.config
+!*_example.config
+*.cfg
+!*_example.cfg
+*.ini
+!*_example.ini
+*.swp
