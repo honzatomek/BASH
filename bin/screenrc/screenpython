@@ -1,0 +1,22 @@
+#!/bin/bash
+
+SCRIPT=$(readlink -m $0)
+SCRIPTPATH=$(dirname "${SCRIPT}")
+SCREENRC=".screenrc"
+SESSIONRC=".screenrc_python"
+SESSIONLAYOUT=".screen_python_layout"
+SESSION='python3'
+
+if [[ ! -e "${HOME}/${SCREENRC}" ]] ; then
+  echo -e "[\033[01;31e-\033[0m] - ${SCREENRC} missing in ${HOME}"
+  echo -e "[\033[01;33ei\033[0m] - copying generic ${SCREENRC} to ${HOME}"
+  cp "${SCRIPTPATH}/${SCREENRC}" "${HOME}/${SCREENRC}"
+else
+  echo -e "[\033[01;32e+\033[0m] - ${SCREENRC} found in ${HOME}"
+fi
+
+if [[ $(screen -ls | grep "${SESSION}") ]] ; then
+  screen -x "${SESSION}"
+else
+  screen -S "${SESSION}" -c "${SCRIPTPATH}/${SESSION}/${SESSIONRC}"
+fi

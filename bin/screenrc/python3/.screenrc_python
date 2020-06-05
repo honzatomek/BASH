@@ -1,0 +1,12 @@
+source .screenrc
+
+split -v
+resize 60%
+screen -t 'edit' -X bash -c "cd ${HOME}/Programming/PYTHON3/bin/; vim"
+
+focus
+screen -t 'repl' -X /usr/bin/env python3
+
+focus
+
+layout save def

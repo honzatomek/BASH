@@ -1,0 +1,4 @@
+startup_message off
+defscrollback 1000
+
+shell /bin/bash

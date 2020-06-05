@@ -1,0 +1,8 @@
+split -v
+resize 60%
+screen -t 'edit' -X cd ~/Programming/PYTHON3/bin/; vim
+
+focus
+screen -t 'repl' -X /usr/bin/env python3
+
+focus
