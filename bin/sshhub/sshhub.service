@@ -1,11 +1,11 @@
 [Unit]
 Description=Setup a secure tunnel to sshhub
 After=network.target
-User=[your username]
-Group=[your group]
+User=pi
+Group=pi
 
 [Service]
-ExecStart=/usr/bin/ssh [USERNAME]@sshhub.de -R [COMPUTERNAME]:22:localhost:22 -N -o ServerAliveInterval=10
+ExecStart=/usr/bin/ssh honzatomek@sshhub.de -R raspberrypi4:22:localhost:22 -N -o ServerAliveInterval=10
 
 # Restart every >2 seconds to avoid StartLimitInterval failure
 RestartSec=5
