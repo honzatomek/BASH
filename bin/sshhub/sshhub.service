@@ -5,7 +5,7 @@ User=pi
 Group=pi
 
 [Service]
-ExecStart=/usr/bin/ssh honzatomek@sshhub.de -R raspberrypi4:22:localhost:22 -N -o ServerAliveInterval=10
+ExecStart=/usr/bin/ssh -i /home/pi/.ssh/rpi4 honzatomek@sshhub.de -R raspberrypi4:22:localhost:22 -N -o ServerAliveInterval=10
 
 # Restart every >2 seconds to avoid StartLimitInterval failure
 RestartSec=5
