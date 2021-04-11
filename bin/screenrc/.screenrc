@@ -1,9 +1,11 @@
 startup_message off
 defscrollback 1000
 
-shell /bin/bash
+# add 256 color support
+attrcolor b ".I"
+termcapinfo xterm 'Co#256:AB=\E[48;5;%dm:AF=\E38;5;%dm'
+defbce "on"
 
-#from https://drjohnstechtalk.com/blog/2019/12/getting-gnu-screen-to-work-on-windows-10-for-a-productive-terminal-multiplex-environment/
-# should enable scrolling with mouse
-#from https://stackoverflow.com/questions/359109/using-the-scrollwheel-in-gnu-screen
-termcapinfo xterm* ti@:te@
+hardstatus alwayslastline "%{b kw}%H %{r}%1` %{w}| %{g}%c %{w}| %{y}%d.%m.%Y %{w}| %{g}%l %{w}| %{-b kw}%u %-Lw%{= rW}%50> %n%f %t %{-}%+Lw%<"
+
+# shell /bin/bash

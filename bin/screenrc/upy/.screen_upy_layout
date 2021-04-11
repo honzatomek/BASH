@@ -1,0 +1,10 @@
+split -v
+resize 60%
+# screen -t 'edit' -X bash -c "cd ${HOME}/Programming/uPython/bin/home_monitor/; vim"
+screen -t 'edit' -X bash --login
+screen -t 'edit' -X vim
+
+focus
+screen -t 'repl' -X bash -c "$HOME/bin/repl"
+
+focus

@@ -1,0 +1,9 @@
+startup_message off
+defscrollback 1000
+
+shell /bin/bash
+
+#from https://drjohnstechtalk.com/blog/2019/12/getting-gnu-screen-to-work-on-windows-10-for-a-productive-terminal-multiplex-environment/
+# should enable scrolling with mouse
+#from https://stackoverflow.com/questions/359109/using-the-scrollwheel-in-gnu-screen
+termcapinfo xterm* ti@:te@

@@ -1,0 +1,12 @@
+# source global .screenrc
+source {{global}}
+
+# cd to custom directory
+chdir {{directory}}
+
+# source layout .screenrc
+source {{layout}}
+
+layout save def
+
+# vim: set filetype=screen:
