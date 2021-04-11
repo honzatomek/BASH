@@ -11,7 +11,7 @@ if !exists('g:screen_repl_vars')
                          \  'init': ['/home/pi/bin/repl', 'repl'],
                          \  'comment': '#',
                          \  'cell': ['{{{', '}}}'],
-                         \  'use_paste_mode': 1,
+                         \  'use_paste_mode': 0,
                          \  'strip_comments': 1,
                          \  'strip_empty_lines': 1,
                          \  'commands': {'cancel': '^C',
@@ -200,25 +200,21 @@ endfunction
 function! s:SendStartPaste()
   call <SID>PrintMsg('function! s:SendStartPaste()')
   silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "' . g:screen_repl_vars['commands']['paste'][0] . '"')
-  "silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "^E"')
 endfunction
 
 function! s:SendEndPaste()
   call <SID>PrintMsg('function! s:SendEndPaste()')
   silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "' . g:screen_repl_vars['commands']['paste'][1] . '"')
-  "silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "^D"')
 endfunction
 
 function! s:SendReset()
-  call <SID>PrintMsg('function! s:SendReset()')
   silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "' . g:screen_repl_vars['commands']['reset'] . '"')
-  "silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "^D"')
+  call <SID>PrintMsg('function! s:SendReset()')
 endfunction
 
 function! s:SendCancel()
   call <SID>PrintMsg('function! s:SendCancel()')
   silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "' . g:screen_repl_vars['commands']['cancel'] . '"')
-  " silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "^C"')
 endfunction
 
 function! s:SendLine()
@@ -229,8 +225,21 @@ function! s:SendLine()
   call <SID>PrintMsg('Sending: ' . l:line)
 endfunction
 
+function! s:SendBlock(text)
+  call <SID>PrintMsg('function! s:SendBlock(text)')
+  let l:text = a:text
+  if g:screen_repl_vars['use_paste_mode'] == 1
+    call <SID>SendStartPaste()
+  endif
+  call <SID>SendText(l:text)
+  exec 'sleep ' . g:screen_repl_vars['delay']  . 'm'
+  if g:screen_repl_vars['use_paste_mode'] == 1
+    call <SID>SendEndPaste()
+  endif
+endfunction
+
 function! s:SendSelected() range
-  call <SID>PrintMsg('function! s:SendSelected()')
+  call <SID>PrintMsg('function! s:SendSelected() range')
   if mode() == "v"
     let [l:line_start, l:column_start] = getpos("v")[1:2]
     let [l:line_end, l:column_end] = getpos(".")[1:2]
@@ -252,11 +261,7 @@ function! s:SendSelected() range
   call <SID>PrintMsg(join(l:lines, "\n"))
 
   let l:text = <SID>StripComments(l:lines)
-  call <SID>SendStartPaste()
-  call <SID>SendText(l:text)
-  " silent call term_wait(g:screen_repl_buffer, g:screen_repl_vars['delay'])
-  exec 'sleep ' . g:screen_repl_buffer['delay']  . 'm'
-  call <SID>SendEndPaste()
+  call <SID>SendBlock(l:text)
 
   call <SID>PrintMsg('Sending: ' . l:text)
 endfunction
@@ -269,11 +274,7 @@ function! s:SendRange() range
   endif
 
   let l:text = <SID>StripComments(l:lines)
-  call <SID>SendStartPaste()
-  call <SID>SendText(l:text)
-  " silent call term_wait(g:screen_repl_buffer, g:screen_repl_vars['delay'])
-  exec 'sleep ' . g:screen_repl_vars['delay']  . 'm'
-  call <SID>SendEndPaste()
+  call <SID>SendBlock(l:text)
 
   call <SID>PrintMsg('Sending: ' . l:text)
 endfunction
@@ -296,11 +297,7 @@ function! s:SendCell()
   endif
 
   let l:text = <SID>StripComments(l:lines)
-  call <SID>SendStartPaste()
-  call <SID>SendText(l:text)
-  " silent call term_wait(g:screen_repl_buffer, g:screen_repl_vars['delay'])
-  exec 'sleep ' . g:screen_repl_vars['delay']  . 'm'
-  call <SID>SendEndPaste()
+  call <SID>SendBlock(l:text)
 
   call <SID>PrintMsg('Sending: ' . l:text)
 endfunction
@@ -311,11 +308,7 @@ function! s:SendFile()
 
   let l:text = <SID>StripComments(l:lines)
 
-  call <SID>SendStartPaste()
-  call <SID>SendText(l:text)
-  " silent call term_wait(g:screen_repl_buffer, g:screen_repl_vars['delay'])
-  exec 'sleep ' . g:screen_repl_vars['delay']  . 'm'
-  call <SID>SendEndPaste()
+  call <SID>SendBlock(l:text)
 
   call <SID>PrintMsg('Sending: ' . l:text)
 endfunction
@@ -327,16 +320,13 @@ function! s:StripComments(text)
   else
     let l:text = a:text
   endif
-
-  " call <SID>PrintMsg(l:text)
+  let l:text = l:text . "\n"
 
   if g:screen_repl_vars['strip_comments']
     let l:text = substitute(l:text, "\\s*" . g:screen_repl_vars['comment'] . ".\\{-}\\ze\n", '', 'g')
-    " call <SID>PrintMsg(l:text)
   endif
   if g:screen_repl_vars['strip_empty_lines']
     let l:text = substitute(l:text, "\n\\{2,}", "\n", 'g')
-    " call <SID>PrintMsg(l:text)
   endif
 
   return l:text
