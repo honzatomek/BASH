@@ -6,20 +6,40 @@ endif
 
 " global variables
 if !exists('g:screen_repl_vars')
-  let g:screen_repl_vars = {'session': '',
-                         \  'chdir': 1,
-                         \  'init': ['/home/pi/bin/repl', 'repl'],
-                         \  'comment': '#',
-                         \  'cell': ['{{{', '}}}'],
-                         \  'use_paste_mode': 0,
-                         \  'strip_comments': 1,
-                         \  'strip_empty_lines': 1,
-                         \  'commands': {'cancel': '^C',
-                                       \ 'reset': '^D',
-                                       \ 'paste': ['^E', '^D'],
-                                       \ 'enter': '^M'},
-                         \  'delay': 200,
-                         \  'debug': 0}
+  let g:screen_repl_vars = {'uPython': {'session': '',
+                                     \  'chdir': 1,
+                                     \  'init': ['/home/pi/bin/repl', 'repl'],
+                                     \  'comment': '#',
+                                     \  'cell': ['{{{', '}}}'],
+                                     \  'use_paste_mode': 1,
+                                     \  'strip_comments': 1,
+                                     \  'strip_empty_lines': 1,
+                                     \  'commands': {'cancel': '^C',
+                                                   \ 'reset': '^D',
+                                                   \ 'paste': ['^E', '^D'],
+                                                   \ 'enter': '^M'},
+                                     \  'delay': 200,
+                                     \  'autoload': 0,
+                                     \  'debug': 0},
+                         \  'python3': {'session': '',
+                                     \  'chdir': 1,
+                                     \  'init': ['/usr/bin/python3.7'],
+                                     \  'comment': '#',
+                                     \  'cell': ['{{{', '}}}'],
+                                     \  'use_paste_mode': 0,
+                                     \  'strip_comments': 1,
+                                     \  'strip_empty_lines': 1,
+                                     \  'commands': {'cancel': '^C',
+                                                   \ 'reset': '^D',
+                                                   \ 'paste': ['', ''],
+                                                   \ 'enter': '^M'},
+                                     \  'delay': 200,
+                                     \  'autoload': 0,
+                                     \  'debug': 0}}
+endif
+
+if !exists('g:screen_repl_sel')
+  let g:screen_repl_sel = ''
 endif
 
 if has('terminal')
@@ -58,7 +78,7 @@ if has('terminal')
   function! s:CloseTerminal()
     call <SID>PrintMsg('function! s:CloseTerminal()')
     silent call term_sendkeys(g:screen_repl_buffer, "\<c-a>d")
-    silent call term_wait(g:screen_repl_buffer, g:screen_repl_vars['delay'])
+    silent call term_wait(g:screen_repl_buffer, g:screen_repl_vars[g:screen_repl_sel]['delay'])
     silent call term_sendkeys(g:screen_repl_buffer, "\<c-d>")
   endfunction
 
@@ -102,11 +122,11 @@ if has('terminal')
 
   function! s:ScreenAttach()
     call <SID>PrintMsg('function! s:ScreenAttach()')
-    if g:screen_repl_vars['session'] == ''
+    if g:screen_repl_vars[g:screen_repl_sel]['session'] == ''
       let l:screen = <SID>ScreenSelect()
-      let g:screen_repl_vars['session'] = l:screen
+      let g:screen_repl_vars[g:screen_repl_sel]['session'] = l:screen
     else
-      let l:screen = g:screen_repl_vars['session']
+      let l:screen = g:screen_repl_vars[g:screen_repl_sel]['session']
     endif
     call term_sendkeys(g:screen_repl_buffer, 'screen -x ' . l:screen . "\<cr>")
 
@@ -115,9 +135,9 @@ if has('terminal')
 
   function! s:ScreenDetach()
     call <SID>PrintMsg('function! s:ScreenDetach()')
-    let l:screen = g:screen_repl_vars['session']
+    let l:screen = g:screen_repl_vars[g:screen_repl_sel]['session']
     call term_sendkeys(g:screen_repl_buffer, "\<c-a>d")
-    let g:screen_repl_vars['session'] = ''
+    let g:screen_repl_vars[g:screen_repl_sel]['session'] = ''
 
     call <SID>PrintMsg('detached from screen ' . l:screen)
   endfunction
@@ -152,7 +172,7 @@ function! s:ScreenSelect()
 
   call <SID>PrintMsg(l:screens[l:choice - 1])
 
-  let g:screen_repl_vars['session'] = l:screens[l:choice - 1]
+  let g:screen_repl_vars[g:screen_repl_sel]['session'] = l:screens[l:choice - 1]
 
   return l:screens[l:choice - 1]
 endfunction
@@ -168,53 +188,53 @@ function! s:ScreenCreate()
   endif
 
   call system('screen -d -m -S ' . l:screen)
-  if type(g:screen_repl_vars['chdir']) == 0
+  if type(g:screen_repl_vars[g:screen_repl_sel]['chdir']) == 0
     call system('screen -S ' . l:screen . ' -X stuff "cd ' . getcwd() . '^M"')
-  elseif type(g:screen_repl_vars['chdir']) == 1
-    if g:screen_repl_vars['chdir'] != ''
-      call system('screen -S ' . l:screen . ' -X stuff "cd ' . g:screen_repl_vars['chdir'] . '^M"')
+  elseif type(g:screen_repl_vars[g:screen_repl_sel]['chdir']) == 1
+    if g:screen_repl_vars[g:screen_repl_sel]['chdir'] != ''
+      call system('screen -S ' . l:screen . ' -X stuff "cd ' . g:screen_repl_vars[g:screen_repl_sel]['chdir'] . '^M"')
     endif
   endif
-  if type(g:screen_repl_vars['init']) == 3
-    for l:command in g:screen_repl_vars['init']
+  if type(g:screen_repl_vars[g:screen_repl_sel]['init']) == 3
+    for l:command in g:screen_repl_vars[g:screen_repl_sel]['init']
       call system('screen -S ' . l:screen . ' -X stuff "' . l:command . '^M"')
     endfor
   else
-    call system('screen -S ' . l:screen . ' -X stuff "' . g:screen_repl_vars['init'] . '^M"')
+    call system('screen -S ' . l:screen . ' -X stuff "' . g:screen_repl_vars[g:screen_repl_sel]['init'] . '^M"')
   endif
 
-  let g:screen_repl_vars['session'] = l:screen
+  let g:screen_repl_vars[g:screen_repl_sel]['session'] = l:screen
   return l:screen
 endfunction
 
 function! s:SendText(text)
   call <SID>PrintMsg('function! s:SendText(text)')
-  silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "' . a:text . '"')
+  silent call system('screen -S ' . g:screen_repl_vars[g:screen_repl_sel]['session'] . ' -X stuff "' . a:text . '"')
 endfunction
 
 function! s:SendEnter()
   call <SID>PrintMsg('function! s:SendEnter()')
-  silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "' . g:screen_repl_vars['commands']['enter'] . '"')
+  silent call system('screen -S ' . g:screen_repl_vars[g:screen_repl_sel]['session'] . ' -X stuff "' . g:screen_repl_vars[g:screen_repl_sel]['commands']['enter'] . '"')
 endfunction
 
 function! s:SendStartPaste()
   call <SID>PrintMsg('function! s:SendStartPaste()')
-  silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "' . g:screen_repl_vars['commands']['paste'][0] . '"')
+  silent call system('screen -S ' . g:screen_repl_vars[g:screen_repl_sel]['session'] . ' -X stuff "' . g:screen_repl_vars[g:screen_repl_sel]['commands']['paste'][0] . '"')
 endfunction
 
 function! s:SendEndPaste()
   call <SID>PrintMsg('function! s:SendEndPaste()')
-  silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "' . g:screen_repl_vars['commands']['paste'][1] . '"')
+  silent call system('screen -S ' . g:screen_repl_vars[g:screen_repl_sel]['session'] . ' -X stuff "' . g:screen_repl_vars[g:screen_repl_sel]['commands']['paste'][1] . '"')
 endfunction
 
 function! s:SendReset()
-  silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "' . g:screen_repl_vars['commands']['reset'] . '"')
+  silent call system('screen -S ' . g:screen_repl_vars[g:screen_repl_sel]['session'] . ' -X stuff "' . g:screen_repl_vars[g:screen_repl_sel]['commands']['reset'] . '"')
   call <SID>PrintMsg('function! s:SendReset()')
 endfunction
 
 function! s:SendCancel()
   call <SID>PrintMsg('function! s:SendCancel()')
-  silent call system('screen -S ' . g:screen_repl_vars['session'] . ' -X stuff "' . g:screen_repl_vars['commands']['cancel'] . '"')
+  silent call system('screen -S ' . g:screen_repl_vars[g:screen_repl_sel]['session'] . ' -X stuff "' . g:screen_repl_vars[g:screen_repl_sel]['commands']['cancel'] . '"')
 endfunction
 
 function! s:SendLine()
@@ -228,12 +248,12 @@ endfunction
 function! s:SendBlock(text)
   call <SID>PrintMsg('function! s:SendBlock(text)')
   let l:text = a:text
-  if g:screen_repl_vars['use_paste_mode'] == 1
+  if g:screen_repl_vars[g:screen_repl_sel]['use_paste_mode'] == 1
     call <SID>SendStartPaste()
   endif
   call <SID>SendText(l:text)
-  exec 'sleep ' . g:screen_repl_vars['delay']  . 'm'
-  if g:screen_repl_vars['use_paste_mode'] == 1
+  exec 'sleep ' . g:screen_repl_vars[g:screen_repl_sel]['delay']  . 'm'
+  if g:screen_repl_vars[g:screen_repl_sel]['use_paste_mode'] == 1
     call <SID>SendEndPaste()
   endif
 endfunction
@@ -281,13 +301,13 @@ endfunction
 
 function! s:SendCell()
   call <SID>PrintMsg('function! s:SendCell()')
-  let l:line_start = search("^" . g:screen_repl_vars['comment'] . "\\s*" . g:screen_repl_vars['cell'][0] . ".*", 'bcnW')
-  let l:line_end = search("^" . g:screen_repl_vars['comment'] . "\\s*" . g:screen_repl_vars['cell'][1] . ".*", 'cnW')
+  let l:line_start = search("^" . g:screen_repl_vars[g:screen_repl_sel]['comment'] . "\\s*" . g:screen_repl_vars[g:screen_repl_sel]['cell'][0] . ".*", 'bcnW')
+  let l:line_end = search("^" . g:screen_repl_vars[g:screen_repl_sel]['comment'] . "\\s*" . g:screen_repl_vars[g:screen_repl_sel]['cell'][1] . ".*", 'cnW')
   " let l:line_end = search("^#{{{.*", 'bcnW')
   " let l:line_end = search("^#}}}.*", 'cnW')
   if or(l:line_start == 0, l:line_end == 0)
-    echom 'No cell (block of code enclosed in ' . g:screen_repl_vars['comment'] . g:screen_repl_vars['cell'][0]
-          \ g:screen_repl_vars['comment'] . g:screen_repl_vars['cell'][1] . ' comment lines) has been found.'
+    echom 'No cell (block of code enclosed in ' . g:screen_repl_vars[g:screen_repl_sel]['comment'] . g:screen_repl_vars[g:screen_repl_sel]['cell'][0]
+          \ g:screen_repl_vars[g:screen_repl_sel]['comment'] . g:screen_repl_vars[g:screen_repl_sel]['cell'][1] . ' comment lines) has been found.'
     return ''
   endif
 
@@ -322,10 +342,10 @@ function! s:StripComments(text)
   endif
   let l:text = l:text . "\n"
 
-  if g:screen_repl_vars['strip_comments']
-    let l:text = substitute(l:text, "\\s*" . g:screen_repl_vars['comment'] . ".\\{-}\\ze\n", '', 'g')
+  if g:screen_repl_vars[g:screen_repl_sel]['strip_comments']
+    let l:text = substitute(l:text, "\\s*" . g:screen_repl_vars[g:screen_repl_sel]['comment'] . ".\\{-}\\ze\n", '', 'g')
   endif
-  if g:screen_repl_vars['strip_empty_lines']
+  if g:screen_repl_vars[g:screen_repl_sel]['strip_empty_lines']
     let l:text = substitute(l:text, "\n\\{2,}", "\n", 'g')
   endif
 
@@ -333,7 +353,7 @@ function! s:StripComments(text)
 endfunction
 
 function! s:PrintMsg(message)
-  if g:screen_repl_vars['debug'] == 1
+  if g:screen_repl_vars[g:screen_repl_sel]['debug'] == 1
     echom a:message
   endif
 endfunction
@@ -354,23 +374,40 @@ function! s:SetEntryMapping(mode, name, function, keys)
   execute 'command! ' . a:name . ' :call ' . a:function
 endfunction
 
-if has('terminal')
-  call <SID>SetEntryMapping('n', 'ScreenReplToggleTerminal', '<SID>ToggleTerminal()', '<leader>rt')
-  call <SID>SetEntryMapping('n', 'ScreenReplViewTerminal', '<SID>ViewTerminal()', '<leader>ro')
-  call <SID>SetEntryMapping('n', 'ScreenReplHideTerminal', '<SID>HideTerminal()', '<leader>rh')
-  call <SID>SetEntryMapping('n', 'ScreenReplCloseTerminal', '<SID>CloseTerminal()', '<leader>rc')
-  call <SID>SetEntryMapping('n', 'ScreenReplScreenAttach', '<SID>ScreenAttach()', '<leader>ra')
-  call <SID>SetEntryMapping('n', 'ScreenReplScreenDetach', '<SID>ScreenDetach()', '<leader>rd')
+function! s:LoadOnDemand()
+  if g:screen_repl_sel == '' || g:screen_repl_vars[g:screen_repl_sel]['autoload'] == 0
+    let l:keys = keys(g:screen_repl_vars)
+    let l:choices = []
+    for l:i in range(len(l:keys))
+      let l:choices += [l:i . ' - ' . l:keys[i]]
+    endfor
+    let g:screen_repl_sel = l:keys[inputlist(l:choices)]
+  endif
+
+  if has('terminal')
+    call <SID>SetEntryMapping('n', 'ScreenReplToggleTerminal', '<SID>ToggleTerminal()', '<leader>rt')
+    call <SID>SetEntryMapping('n', 'ScreenReplViewTerminal', '<SID>ViewTerminal()', '<leader>ro')
+    call <SID>SetEntryMapping('n', 'ScreenReplHideTerminal', '<SID>HideTerminal()', '<leader>rh')
+    call <SID>SetEntryMapping('n', 'ScreenReplCloseTerminal', '<SID>CloseTerminal()', '<leader>rc')
+    call <SID>SetEntryMapping('n', 'ScreenReplScreenAttach', '<SID>ScreenAttach()', '<leader>ra')
+    call <SID>SetEntryMapping('n', 'ScreenReplScreenDetach', '<SID>ScreenDetach()', '<leader>rd')
+  endif
+  call <SID>SetEntryMapping('n', 'ScreenReplScreenInit', '<SID>ScreenSelect()', '<leader>ri')
+  call <SID>SetEntryMapping('n', 'ScreenReplSendLine', '<SID>SendLine()', '<leader>rl')
+  call <SID>SetEntryMapping('n', 'ScreenReplSendCell', '<SID>SendCell()', '<leader>rc')
+  call <SID>SetEntryMapping('n', 'ScreenReplSendSelectedN', '<SID>SendSelected()', '<leader>rs')
+  call <SID>SetEntryMapping('x', 'ScreenReplSendSelected', '<SID>SendSelected()', '<leader>rs')
+  call <SID>SetEntryMapping('r', 'ScreenReplSendRange', '<SID>SendRange()', '')
+  call <SID>SetEntryMapping('n', 'ScreenReplSendFile', '<SID>SendFile()', '<leader>rf')
+  call <SID>SetEntryMapping('n', 'ScreenReplSendReset', '<SID>SendReset()', '<leader>rr')
+  call <SID>SetEntryMapping('n', 'ScreenReplSendEnter', '<SID>SendEnter()', '<leader>re')
+  call <SID>SetEntryMapping('n', 'ScreenReplSendCancel', '<SID>SendCancel()', '<leader>rx')
+endfunction
+
+if g:screen_repl_sel != '' && g:screen_repl_vars[g:screen_repl_sel]['autoload'] == 1
+  call <SID>LoadOnDemand()
+else
+  command! ScreenRepl :call <SID>LoadOnDemand()
 endif
-call <SID>SetEntryMapping('n', 'ScreenReplScreenInit', '<SID>ScreenSelect()', '<leader>ri')
-call <SID>SetEntryMapping('n', 'ScreenReplSendLine', '<SID>SendLine()', '<leader>rl')
-call <SID>SetEntryMapping('n', 'ScreenReplSendCell', '<SID>SendCell()', '<leader>rc')
-call <SID>SetEntryMapping('n', 'ScreenReplSendSelectedN', '<SID>SendSelected()', '<leader>rs')
-call <SID>SetEntryMapping('x', 'ScreenReplSendSelected', '<SID>SendSelected()', '<leader>rs')
-call <SID>SetEntryMapping('r', 'ScreenReplSendRange', '<SID>SendRange()', '')
-call <SID>SetEntryMapping('n', 'ScreenReplSendFile', '<SID>SendFile()', '<leader>rf')
-call <SID>SetEntryMapping('n', 'ScreenReplSendReset', '<SID>SendReset()', '<leader>rr')
-call <SID>SetEntryMapping('n', 'ScreenReplSendEnter', '<SID>SendEnter()', '<leader>re')
-call <SID>SetEntryMapping('n', 'ScreenReplSendCancel', '<SID>SendCancel()', '<leader>rx')
 
 let g:screen_repl = 1
